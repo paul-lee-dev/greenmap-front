@@ -5,6 +5,11 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Netlify Functions 설정
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

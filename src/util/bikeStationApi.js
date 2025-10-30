@@ -3,7 +3,14 @@
  */
 
 const BIKE_API_KEY = import.meta.env.VITE_SEOUL_API_KEY || '';
-const BIKE_API_BASE_URL = 'http://openapi.seoul.go.kr:8088';
+
+// 프로덕션 환경(Netlify)에서는 Netlify Functions 프록시 사용
+// 로컬 환경에서는 직접 API 호출
+const IS_PRODUCTION = import.meta.env.PROD;
+const BIKE_API_BASE_URL = IS_PRODUCTION
+    ? '/.netlify/functions/bike-proxy' // Netlify Functions 프록시
+    : 'http://openapi.seoul.go.kr:8088'; // 로컬 개발용
+
 const CACHE_KEY = 'bike_stations';
 const CACHE_EXPIRY_KEY = 'bike_stations_expiry';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간 (밀리초)
@@ -54,11 +61,18 @@ export const saveBikeStationsToCache = (stations) => {
  * 따릉이 API에서 데이터 가져오기 (페이지네이션)
  */
 const fetchBikeStationsPage = async (startIndex, endIndex) => {
-    if (!BIKE_API_KEY) {
+    if (!BIKE_API_KEY && !IS_PRODUCTION) {
         throw new Error('VITE_SEOUL_API_KEY is not configured');
     }
 
-    const url = `${BIKE_API_BASE_URL}/${BIKE_API_KEY}/json/tbCycleStationInfo/${startIndex}/${endIndex}/`;
+    let url;
+    if (IS_PRODUCTION) {
+        // Netlify Functions 프록시 사용
+        url = `${BIKE_API_BASE_URL}?start=${startIndex}&end=${endIndex}`;
+    } else {
+        // 로컬 개발: 직접 API 호출
+        url = `${BIKE_API_BASE_URL}/${BIKE_API_KEY}/json/tbCycleStationInfo/${startIndex}/${endIndex}/`;
+    }
 
     const response = await fetch(url);
 
