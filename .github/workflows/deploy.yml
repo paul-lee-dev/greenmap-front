@@ -3,10 +3,10 @@ name: Deploy to Netlify
 on:
     push:
         branches:
-            - release
+            - release, dev
     pull_request:
         branches:
-            - release
+            - release, dev
 
 jobs:
     build-and-deploy:
